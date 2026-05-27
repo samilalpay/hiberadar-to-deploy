@@ -1,5 +1,6 @@
 package com.hiberadar.domain.grant.dto;
 
+import jakarta.validation.constraints.NotNull;
 import com.hiberadar.domain.grant.entity.enums.InstitutionScope;
 import jakarta.validation.constraints.NotBlank;
 
