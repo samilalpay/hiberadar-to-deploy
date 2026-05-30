@@ -13,6 +13,44 @@
   margin-bottom: 0.5rem;
 }
 
+.admin-firm-detail-head {
+  flex-wrap: wrap;
+  row-gap: 0.6rem;
+  align-items: flex-start;
+}
+
+.admin-firm-detail-head .btn {
+  margin-top: 0.2rem;
+}
+
+.admin-firm-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.admin-search-input {
+  min-width: 240px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 0.45rem 0.65rem;
+  font: inherit;
+  background: #fff;
+  color: #0f172a;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.admin-search-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.admin-firm-toolbar {
+  justify-content: flex-start;
+}
+
 .admin-page-header h1 {
   margin: 0;
   font-size: 1.8rem;

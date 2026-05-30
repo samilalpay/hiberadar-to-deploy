@@ -17,17 +17,32 @@ export function FirmDashboardPage() {
       setIsLoading(true)
       setError('')
       try {
-        const [publishedMeta, publishedPage, matched, mine, profile] = await Promise.all([
+        const [publishedMeta, publishedPage] = await Promise.all([
           listGrants({ status: 'PUBLISHED', page: 0, size: 1 }),
           listGrants({ status: 'PUBLISHED', page: 0, size: 50 }),
-          listMyMatchedGrants(0, 6),
-          listMyApplications(0, 1),
-          getMyProfile(),
         ])
         setOpenGrantCount(publishedMeta.totalElements)
-        setMatchedCount(matched.totalElements)
-        setMyApplicationCount(mine.totalElements)
-        setProfileReady(profile.profileCompleted)
+
+        try {
+          const matched = await listMyMatchedGrants(0, 6)
+          setMatchedCount(matched.totalElements)
+        } catch {
+          setMatchedCount(0)
+        }
+
+        try {
+          const mine = await listMyApplications(0, 1)
+          setMyApplicationCount(mine.totalElements)
+        } catch {
+          setMyApplicationCount(0)
+        }
+
+        try {
+          const profile = await getMyProfile()
+          setProfileReady(profile.profileCompleted)
+        } catch {
+          setProfileReady(false)
+        }
 
         const nearest = [...publishedPage.content]
           .filter((item) => item.deadlineAt)

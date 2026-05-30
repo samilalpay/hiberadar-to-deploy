@@ -6,6 +6,8 @@ import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { RegisterPage } from '@/features/auth/pages/RegisterPage'
 import { AdminApplicationsPage } from '@/features/admin/pages/AdminApplicationsPage'
 import { AdminDashboardPage } from '@/features/admin/pages/AdminDashboardPage'
+import { AdminFirmDetailPage } from '@/features/admin/pages/AdminFirmDetailPage'
+import { AdminFirmsPage } from '@/features/admin/pages/AdminFirmsPage'
 import { AdminFirmRegistrationsPage } from '@/features/admin/pages/AdminFirmRegistrationsPage'
 import { AdminGrantsPage } from '@/features/admin/pages/AdminGrantsPage'
 import { AdminIngestPage } from '@/features/admin/pages/AdminIngestPage'
@@ -76,6 +78,8 @@ export function AppRouter() {
       >
         <Route index element={<Navigate to="/admin/dashboard" replace />} />
         <Route path="dashboard" element={<AdminDashboardPage />} />
+        <Route path="firms" element={<AdminFirmsPage />} />
+        <Route path="firms/:id" element={<AdminFirmDetailPage />} />
         <Route path="firm-registrations" element={<AdminFirmRegistrationsPage />} />
         <Route path="institutions" element={<AdminInstitutionsPage />} />
         <Route path="grants" element={<AdminGrantsPage />} />

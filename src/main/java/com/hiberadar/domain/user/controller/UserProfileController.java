@@ -6,9 +6,11 @@ import com.hiberadar.domain.user.dto.ChangePasswordRequest;
 import com.hiberadar.domain.user.dto.ActionMessageResponse;
 import com.hiberadar.domain.user.service.UserProfileService;
 import jakarta.validation.Valid;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/profile")
@@ -37,5 +39,11 @@ public class UserProfileController {
             Authentication authentication) {
         userProfileService.changePassword(authentication.getName(), req);
         return new ActionMessageResponse("Sifre basariyla guncellendi.");
+    }
+
+    @PostMapping(value = "/me/logo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public UserProfileResponse uploadLogo(@RequestPart("file") MultipartFile file,
+            Authentication authentication) {
+        return userProfileService.uploadLogo(authentication.getName(), file);
     }
 }

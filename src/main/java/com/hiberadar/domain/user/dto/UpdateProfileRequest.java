@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Pattern;
 import java.math.BigDecimal;
 
 public record UpdateProfileRequest(
+                @NotBlank String companyName,
                 @NotBlank String applicantType,
                 @NotNull @Min(0) Integer companyAgeMonths,
                 @NotNull @Min(0) Integer employees,

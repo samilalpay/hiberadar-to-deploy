@@ -84,6 +84,9 @@ export type EligibilityCheckResponse = {
 
 export type RegisterFirmRequest = {
   username: string
+  firstName: string
+  lastName: string
+  phone: string
   email: string
   password: string
   note?: string
@@ -138,6 +141,9 @@ export async function checkEligibility(payload: EligibilityCheckRequest): Promis
 export async function createFirmRegistration(payload: RegisterFirmRequest): Promise<RegisterFirmResponse> {
   const response = await http.post<RegisterFirmResponse>('/api/firm-registrations', {
     username: payload.username.trim(),
+    firstName: payload.firstName.trim(),
+    lastName: payload.lastName.trim(),
+    phone: payload.phone.trim(),
     email: payload.email.trim(),
     password: payload.password,
     note: payload.note?.trim() || undefined,

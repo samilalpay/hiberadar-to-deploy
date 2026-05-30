@@ -53,12 +53,53 @@ export type MeetingCalendarItem = {
 export type AdminFirmRegistration = {
   id: number
   username: string
+  firstName?: string
+  lastName?: string
+  phone?: string
   email: string
   status: 'PENDING' | 'APPROVED' | 'REJECTED'
   createdAt?: string
   decidedAt?: string
   decisionNote?: string
+  note?: string
   createdBy?: string
+}
+
+export type AdminFirmListItem = {
+  id: number
+  companyName?: string | null
+  username: string
+  email: string
+  profileCompleted: boolean
+  active: boolean
+  sector?: string | null
+  countryCode?: string | null
+  employees?: number | null
+  companyLogoUrl?: string | null
+}
+
+export type AdminFirmDetail = {
+  id: number
+  companyName?: string | null
+  username: string
+  email: string
+  firstName?: string | null
+  lastName?: string | null
+  phone?: string | null
+  role?: string | null
+  profileCompleted: boolean
+  active: boolean
+  applicantType?: string | null
+  companyAgeMonths?: number | null
+  employees?: number | null
+  countryCode?: string | null
+  cofundingAvailable?: boolean | null
+  cofundingRate?: number | null
+  sector?: string | null
+  activityArea?: string | null
+  turnover?: number | null
+  naceCodes?: string | null
+  companyLogoUrl?: string | null
 }
 
 export type ProfileResponse = {
@@ -66,6 +107,10 @@ export type ProfileResponse = {
   email: string
   role: string
   profileCompleted: boolean
+  firstName?: string | null
+  lastName?: string | null
+  phone?: string | null
+  companyName: string
   applicantType: string
   companyAgeMonths: number
   employees: number
@@ -76,9 +121,11 @@ export type ProfileResponse = {
   activityArea: string
   turnover: number
   naceCodes: string
+  companyLogoUrl?: string | null
 }
 
 export type UpdateProfilePayload = {
+  companyName: string
   applicantType: string
   companyAgeMonths: number
   employees: number
@@ -220,12 +267,14 @@ export async function listAdminFirmRegistrations(params: {
   status?: 'PENDING' | 'APPROVED' | 'REJECTED'
   page?: number
   size?: number
+  sort?: string
 }): Promise<PageResponse<AdminFirmRegistration>> {
   const response = await http.get<PageResponse<AdminFirmRegistration>>('/api/admin/firm-registrations', {
     params: {
       status: params.status,
       page: params.page ?? 0,
       size: params.size ?? 12,
+      sort: params.sort,
     },
   })
   return response.data
@@ -241,6 +290,38 @@ export async function setAdminFirmRegistrationStatus(
     decisionNote: decisionNote?.trim() || undefined,
   })
   return response.data
+}
+
+export async function listAdminFirms(params: {
+  page?: number
+  size?: number
+  q?: string
+  active?: boolean
+}): Promise<PageResponse<AdminFirmListItem>> {
+  const response = await http.get<PageResponse<AdminFirmListItem>>('/api/admin/firms', {
+    params: {
+      page: params.page ?? 0,
+      size: params.size ?? 12,
+      q: params.q?.trim() || undefined,
+      active: typeof params.active === 'boolean' ? params.active : undefined,
+    },
+  })
+  return response.data
+}
+
+export async function getAdminFirm(id: number): Promise<AdminFirmDetail> {
+  const response = await http.get<AdminFirmDetail>(`/api/admin/firms/${id}`)
+  return response.data
+}
+
+export async function deleteAdminFirm(id: number): Promise<void> {
+  await http.delete(`/api/admin/firms/${id}`)
+}
+
+export async function setAdminFirmActive(id: number, active: boolean): Promise<void> {
+  await http.patch(`/api/admin/firms/${id}/active`, undefined, {
+    params: { active },
+  })
 }
 
 export async function listMyApplications(page = 0, size = 12): Promise<PageResponse<AdminApplication>> {
@@ -351,6 +432,13 @@ export async function getMyProfile(): Promise<ProfileResponse> {
 
 export async function updateMyProfile(payload: UpdateProfilePayload): Promise<ProfileResponse> {
   const response = await http.put<ProfileResponse>('/api/profile/me', payload)
+  return response.data
+}
+
+export async function uploadMyProfileLogo(file: File): Promise<ProfileResponse> {
+  const formData = new FormData()
+  formData.append('file', file)
+  const response = await http.post<ProfileResponse>('/api/profile/me/logo', formData)
   return response.data
 }
 

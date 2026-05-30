@@ -85,7 +85,7 @@ public class GrantAdminService {
 
         // ✅ unique constraint: ux_grants_source_refcode (source_id + reference_code)
         if (req.referenceCode() != null && !req.referenceCode().isBlank()) {
-                boolean existsRef = grantRepository.existsBySource_IdAndReferenceCodeIgnoreCase(
+            boolean existsRef = grantRepository.existsBySource_IdAndReferenceCodeIgnoreCase(
                     sourceId, req.referenceCode());
             if (existsRef) {
                 throw new ResponseStatusException(
@@ -96,7 +96,7 @@ public class GrantAdminService {
 
         // ✅ unique constraint: ux_grants_source_url (source_id + official_url)
         if (req.officialUrl() != null && !req.officialUrl().isBlank()) {
-                boolean existsUrl = grantRepository.existsBySource_IdAndOfficialUrlIgnoreCase(
+            boolean existsUrl = grantRepository.existsBySource_IdAndOfficialUrlIgnoreCase(
                     sourceId, req.officialUrl());
             if (existsUrl) {
                 throw new ResponseStatusException(

@@ -22,7 +22,7 @@ public class UploadWebConfig implements WebMvcConfigurer {
         Path uploadRoot = Path.of(uploadProperties.getBaseDir()).toAbsolutePath().normalize();
         String location = uploadRoot.toUri().toString();
         registry.addResourceHandler("/uploads/**")
-            .addResourceLocations(location)
-            .setCachePeriod(3600);
+                .addResourceLocations(location)
+                .setCachePeriod(3600);
     }
 }

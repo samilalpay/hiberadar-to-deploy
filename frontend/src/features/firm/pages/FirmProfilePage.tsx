@@ -4,9 +4,11 @@ import { useAuth } from '@/features/auth/model/use-auth'
 import {
   changeMyPassword,
   getMyProfile,
+  uploadMyProfileLogo,
   updateMyProfile,
   type UpdateProfilePayload,
 } from '@/features/panel/api/panel.api'
+import { resolveMediaUrl } from '@/shared/lib/media'
 
 const CUSTOM_OPTION = '__CUSTOM__'
 const NACE_REGEX = /^\d{2}(?:\.\d{2}){0,3}$/
@@ -63,6 +65,7 @@ function hasInvalidNaceCode(value: string): boolean {
 }
 
 const initialForm: UpdateProfilePayload = {
+  companyName: '',
   applicantType: 'SME',
   companyAgeMonths: 0,
   employees: 1,
@@ -90,6 +93,15 @@ export function FirmProfilePage() {
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const [logoFile, setLogoFile] = useState<File | null>(null)
+  const [logoPreview, setLogoPreview] = useState<string | null>(null)
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  const [logoMessage, setLogoMessage] = useState('')
+  const [contactInfo, setContactInfo] = useState({
+    fullName: '',
+    phone: '',
+    email: '',
+  })
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
     newPassword: '',
@@ -117,7 +129,9 @@ export function FirmProfilePage() {
       setError('')
       try {
         const me = await getMyProfile()
+        const fullName = [me.firstName, me.lastName].filter(Boolean).join(' ').trim()
         setForm({
+          companyName: me.companyName ?? '',
           applicantType: me.applicantType ?? 'SME',
           companyAgeMonths: me.companyAgeMonths ?? 0,
           employees: me.employees ?? 1,
@@ -128,6 +142,12 @@ export function FirmProfilePage() {
           activityArea: me.activityArea ?? '',
           turnover: Number(me.turnover ?? 0),
           naceCodes: me.naceCodes ?? '',
+        })
+        setLogoUrl(me.companyLogoUrl ?? null)
+        setContactInfo({
+          fullName,
+          phone: me.phone ?? '',
+          email: me.email ?? '',
         })
         setEmployeesInput(formatNumberInput(me.employees))
         setTurnoverInput(formatNumberInput(Number(me.turnover ?? 0)))
@@ -160,10 +180,27 @@ export function FirmProfilePage() {
     void load()
   }, [])
 
+  useEffect(() => {
+    if (!logoFile) {
+      setLogoPreview(null)
+      return
+    }
+    const previewUrl = URL.createObjectURL(logoFile)
+    setLogoPreview(previewUrl)
+    return () => {
+      URL.revokeObjectURL(previewUrl)
+    }
+  }, [logoFile])
+
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setMessage('')
     setError('')
+
+    if (!form.companyName.trim()) {
+      setError('Lutfen firma adini yazin.')
+      return
+    }
 
     if (selectedSector === CUSTOM_OPTION && !customSector.trim()) {
       setError('Lutfen sektor alanini doldurun.')
@@ -193,6 +230,24 @@ export function FirmProfilePage() {
       setMessage('Profiliniz guncellendi.')
     } catch {
       setError('Profil guncellenemedi. Alanlari kontrol edin.')
+    }
+  }
+
+  async function onUploadLogo() {
+    if (!logoFile) {
+      setLogoMessage('Lutfen bir logo dosyasi secin.')
+      return
+    }
+    setLogoMessage('')
+    setError('')
+    try {
+      const response = await uploadMyProfileLogo(logoFile)
+      setLogoUrl(response.companyLogoUrl ?? null)
+      setLogoFile(null)
+      setLogoMessage('Logo guncellendi.')
+      window.dispatchEvent(new Event('profile:changed'))
+    } catch {
+      setError('Logo yuklenemedi. Dosyayi kontrol edin.')
     }
   }
 
@@ -289,9 +344,16 @@ export function FirmProfilePage() {
       </div>
 
       <article className="page-card profile-hero-card">
-        <div>
+        <div className="profile-hero-details">
           <h3>{username ?? 'Kullanici'} hesabiniz</h3>
           <p>Hesabinizda profil ayarlari ve sifre guvenligi islemlerini yapabilirsiniz.</p>
+          {contactInfo.fullName || contactInfo.phone || contactInfo.email ? (
+            <p>
+              {contactInfo.fullName || 'Iletisim bilgisi yok'}
+              {contactInfo.phone ? ` · ${contactInfo.phone}` : ''}
+              {contactInfo.email ? ` · ${contactInfo.email}` : ''}
+            </p>
+          ) : null}
         </div>
         <div className="panel-chip-row">
           <button
@@ -312,7 +374,43 @@ export function FirmProfilePage() {
       </article>
 
       {activeTab === 'profile' ? (
+      <>
+      <article className="page-card profile-logo-card">
+        <div className="profile-logo-row">
+          <div className="profile-logo-preview">
+            {logoPreview || logoUrl ? (
+              <img
+                src={logoPreview ?? resolveMediaUrl(logoUrl)}
+                alt="Firma logosu"
+              />
+            ) : (
+              <span>Logo</span>
+            )}
+          </div>
+          <div className="profile-logo-actions">
+            <h4>Firma Logosu</h4>
+            <p>Profilinizde ve panelde gorunur. PNG, JPG, WEBP veya SVG yukleyin.</p>
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/svg+xml"
+              onChange={(e) => setLogoFile(e.target.files?.[0] ?? null)}
+            />
+            <button type="button" className="btn" onClick={() => void onUploadLogo()} disabled={isLoading}>
+              Logo Yukle
+            </button>
+            {logoMessage ? <small className="auth-help">{logoMessage}</small> : null}
+          </div>
+        </div>
+      </article>
       <form className="panel-form-grid profile-modern-form" onSubmit={onSubmit}>
+        <label>
+          Firma Adi
+          <input
+            value={form.companyName}
+            onChange={(e) => setForm((p) => ({ ...p, companyName: e.target.value }))}
+            placeholder="Orn: HibeRadar Teknoloji"
+          />
+        </label>
         <label>
           Basvuru Tipi
           <select value={form.applicantType} onChange={(e) => setForm((p) => ({ ...p, applicantType: e.target.value }))}>
@@ -451,6 +549,7 @@ export function FirmProfilePage() {
         </label>
         <button type="submit" className="btn btn-primary" disabled={isLoading}>Kaydet</button>
       </form>
+      </>
       ) : (
       <div className="profile-security-stack">
         <aside className="page-card profile-security-tips">

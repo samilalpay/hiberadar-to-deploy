@@ -28,7 +28,11 @@ public class DbUserDetailsService implements UserDetailsService {
         return new org.springframework.security.core.userdetails.User(
                 u.getUsername(),
                 u.getPasswordHash(),
-                List.of(new SimpleGrantedAuthority("ROLE_" + role))
+            u.isActive(),
+            true,
+            true,
+            true,
+            List.of(new SimpleGrantedAuthority("ROLE_" + role))
         );
     }
 }

@@ -24,38 +24,33 @@ public class InstitutionInitializer implements CommandLineRunner {
 
         // Create initial institutions
         institutionRepository.save(new Institution(
-            "Küçük ve Orta Ölçekli İşletmeleri Geliştirme ve Destekleme İdaresi Başkanlığı",
-            "KOSGEB",
-            "/institution-logos/kosgeb.png",
-            InstitutionScope.NATIONAL
-        ));
+                "Küçük ve Orta Ölçekli İşletmeleri Geliştirme ve Destekleme İdaresi Başkanlığı",
+                "KOSGEB",
+                "/institution-logos/kosgeb.png",
+                InstitutionScope.NATIONAL));
 
         institutionRepository.save(new Institution(
-            "Türkiye Bilimsel ve Teknolojik Araştırma Kurumu",
-            "TUBITAK",
-            "/institution-logos/tubitak.png",
-            InstitutionScope.NATIONAL
-        ));
+                "Türkiye Bilimsel ve Teknolojik Araştırma Kurumu",
+                "TUBITAK",
+                "/institution-logos/tubitak.png",
+                InstitutionScope.NATIONAL));
 
         institutionRepository.save(new Institution(
-            "Horizon Europe",
-            "HORIZON",
-            "/institution-logos/horizon-europe.png",
-            InstitutionScope.INTERNATIONAL
-        ));
+                "Horizon Europe",
+                "HORIZON",
+                "/institution-logos/horizon-europe.png",
+                InstitutionScope.INTERNATIONAL));
 
         institutionRepository.save(new Institution(
-            "Türkiye Cumhuriyeti Ticaret Bakanlığı",
-            "TICARET",
-            "/institution-logos/ticaret-bakanligi.png",
-            InstitutionScope.NATIONAL
-        ));
+                "Türkiye Cumhuriyeti Ticaret Bakanlığı",
+                "TICARET",
+                "/institution-logos/ticaret-bakanligi.png",
+                InstitutionScope.NATIONAL));
 
         institutionRepository.save(new Institution(
-            "Avrupa İnovasyonu ve Teknoloji Enstitüsü",
-            "EIT",
-            "/institution-logos/eit.png",
-            InstitutionScope.INTERNATIONAL
-        ));
+                "Avrupa İnovasyonu ve Teknoloji Enstitüsü",
+                "EIT",
+                "/institution-logos/eit.png",
+                InstitutionScope.INTERNATIONAL));
     }
 }

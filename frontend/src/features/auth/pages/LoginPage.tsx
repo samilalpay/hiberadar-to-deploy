@@ -49,21 +49,36 @@ export function LoginPage() {
   }
 
   return (
-    <section className="auth-card">
-      <h1>Giriş Yap</h1>
-      <form onSubmit={onSubmit} className="auth-form">
-        <input placeholder="Kullanıcı adı" value={username} onChange={(e) => setUsername(e.target.value)} />
-        <input
-          type="password"
-          placeholder="Şifre"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-          {isSubmitting ? 'Giriş Yapılıyor...' : 'Giriş Yap'}
-        </button>
-        {error ? <p>{error}</p> : null}
-      </form>
+    <section className="auth-shell">
+      <div className="auth-card auth-card-compact">
+        <div className="auth-head">
+          <p className="auth-eyebrow">HibeRadar</p>
+          <h1>Giris Yap</h1>
+          <p>Panelinize erismek icin bilgilerinizi girin.</p>
+        </div>
+        <form onSubmit={onSubmit} className="auth-form">
+          <label>
+            Kullanici adi
+            <input placeholder="Kullanici adiniz" value={username} onChange={(e) => setUsername(e.target.value)} />
+          </label>
+          <label>
+            Sifre
+            <input
+              type="password"
+              placeholder="Sifreniz"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </label>
+          <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+            {isSubmitting ? 'Giris Yapiliyor...' : 'Giris Yap'}
+          </button>
+          {error ? <p className="panel-error">{error}</p> : null}
+          <p className="auth-help">
+            Hesabin yok mu? <a href="/register">Kayit Ol</a>
+          </p>
+        </form>
+      </div>
     </section>
   )
 }

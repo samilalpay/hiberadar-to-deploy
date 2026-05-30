@@ -19,10 +19,14 @@ public class UserProfileService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final FirmLogoStorageService firmLogoStorageService;
 
-    public UserProfileService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserProfileService(UserRepository userRepository,
+                              PasswordEncoder passwordEncoder,
+                              FirmLogoStorageService firmLogoStorageService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.firmLogoStorageService = firmLogoStorageService;
     }
 
     @Transactional(readOnly = true)
@@ -34,6 +38,7 @@ public class UserProfileService {
     public UserProfileResponse update(String username, UpdateProfileRequest req) {
         AppUser user = getUser(username);
 
+        user.setCompanyName(req.companyName().trim());
         user.setApplicantType(req.applicantType().trim().toUpperCase());
         user.setCompanyAgeMonths(req.companyAgeMonths());
         user.setEmployees(req.employees());
@@ -69,6 +74,16 @@ public class UserProfileService {
         userRepository.save(user);
     }
 
+    public UserProfileResponse uploadLogo(String username, org.springframework.web.multipart.MultipartFile file) {
+        AppUser user = getUser(username);
+
+        String logoUrl = firmLogoStorageService.storeLogo(user.getId(), file);
+        user.setCompanyLogoUrl(logoUrl);
+        userRepository.save(user);
+
+        return toResponse(user);
+    }
+
     private AppUser getUser(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
@@ -76,6 +91,8 @@ public class UserProfileService {
 
     private boolean isProfileComplete(AppUser user) {
         return user.getApplicantType() != null
+            && user.getCompanyName() != null
+            && !user.getCompanyName().isBlank()
                 && !user.getApplicantType().isBlank()
                 && user.getCompanyAgeMonths() != null
                 && user.getEmployees() != null
@@ -98,6 +115,10 @@ public class UserProfileService {
                 user.getEmail(),
                 user.getRole() == null ? null : user.getRole().name(),
                 user.isProfileCompleted(),
+            user.getFirstName(),
+            user.getLastName(),
+            user.getPhone(),
+                user.getCompanyName(),
                 user.getApplicantType(),
                 user.getCompanyAgeMonths(),
                 user.getEmployees(),
@@ -107,7 +128,8 @@ public class UserProfileService {
                 user.getSector(),
                 user.getActivityArea(),
                 user.getTurnover(),
-                user.getNaceCodes());
+                user.getNaceCodes(),
+                user.getCompanyLogoUrl());
     }
 
     private String normalizeNaceCodes(String value) {

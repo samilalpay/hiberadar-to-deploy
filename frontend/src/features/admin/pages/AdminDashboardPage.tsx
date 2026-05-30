@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
+import { isAxiosError } from 'axios'
 import { listAdminApplications, listAdminFirmRegistrations, listAdminGrants } from '@/features/panel/api/panel.api'
 
 export function AdminDashboardPage() {
@@ -29,8 +30,14 @@ export function AdminDashboardPage() {
           totalGrants: total.totalElements,
           submittedApplications: submittedApps.totalElements,
         })
-      } catch {
-        setError('Dashboard verileri yuklenemedi.')
+      } catch (err) {
+        if (isAxiosError(err)) {
+          const status = err.response?.status
+          const detail = (err.response?.data as { message?: string })?.message
+          setError(`Dashboard verileri yuklenemedi${status ? ` (HTTP ${status})` : ''}${detail ? `: ${detail}` : ''}.`)
+        } else {
+          setError('Dashboard verileri yuklenemedi.')
+        }
       } finally {
         setIsLoading(false)
       }

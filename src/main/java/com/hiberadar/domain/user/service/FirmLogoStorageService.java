@@ -1,4 +1,4 @@
-package com.hiberadar.domain.grant.service;
+package com.hiberadar.domain.user.service;
 
 import com.hiberadar.common.config.UploadProperties;
 import org.springframework.http.MediaType;
@@ -14,7 +14,7 @@ import java.util.Locale;
 import java.util.Set;
 
 @Service
-public class InstitutionLogoStorageService {
+public class FirmLogoStorageService {
 
     private static final Set<String> ALLOWED_TYPES = Set.of(
             MediaType.IMAGE_JPEG_VALUE,
@@ -24,35 +24,35 @@ public class InstitutionLogoStorageService {
 
     private final UploadProperties uploadProperties;
 
-    public InstitutionLogoStorageService(UploadProperties uploadProperties) {
+    public FirmLogoStorageService(UploadProperties uploadProperties) {
         this.uploadProperties = uploadProperties;
     }
 
-    public String storeLogo(Long institutionId, MultipartFile file) {
+    public String storeLogo(Long userId, MultipartFile file) {
         if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("Logo dosyası boş olamaz.");
+            throw new IllegalArgumentException("Logo dosyasi bos olamaz.");
         }
 
         String contentType = file.getContentType();
         if (contentType == null || !ALLOWED_TYPES.contains(contentType.toLowerCase(Locale.ROOT))) {
-            throw new IllegalArgumentException("Logo dosyası PNG, JPG, WEBP veya SVG olmalıdır.");
+            throw new IllegalArgumentException("Logo dosyasi PNG, JPG, WEBP veya SVG olmali.");
         }
 
         String extension = resolveExtension(file, contentType);
-        String fileName = "institution-" + institutionId + "-" + Instant.now().toEpochMilli() + extension;
+        String fileName = "firm-" + userId + "-" + Instant.now().toEpochMilli() + extension;
 
         Path baseDir = Path.of(uploadProperties.getBaseDir());
-        Path institutionsDir = baseDir.resolve(uploadProperties.getInstitutionsDir());
-        Path target = institutionsDir.resolve(fileName).toAbsolutePath().normalize();
+        Path firmDir = baseDir.resolve(uploadProperties.getFirmLogosDir());
+        Path target = firmDir.resolve(fileName).toAbsolutePath().normalize();
 
         try {
-            Files.createDirectories(institutionsDir);
+            Files.createDirectories(firmDir);
             Files.copy(file.getInputStream(), target, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException ex) {
-            throw new IllegalStateException("Logo dosyası kaydedilemedi.", ex);
+            throw new IllegalStateException("Logo dosyasi kaydedilemedi.", ex);
         }
 
-        return "/uploads/" + uploadProperties.getInstitutionsDir() + "/" + fileName;
+        return "/uploads/" + uploadProperties.getFirmLogosDir() + "/" + fileName;
     }
 
     private String resolveExtension(MultipartFile file, String contentType) {

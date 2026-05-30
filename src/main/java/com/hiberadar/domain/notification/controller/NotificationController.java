@@ -20,8 +20,12 @@ public class NotificationController {
     }
 
     @GetMapping("/me")
-    public Page<NotificationResponse> myNotifications(Authentication authentication, Pageable pageable) {
-        return notificationService.myNotifications(authentication.getName(), pageable);
+    public Page<NotificationResponse> myNotifications(
+            Authentication authentication,
+            @RequestParam(required = false) Boolean read,
+            Pageable pageable
+    ) {
+        return notificationService.myNotifications(authentication.getName(), read, pageable);
     }
 
     @GetMapping("/me/unread-count")
@@ -32,5 +36,15 @@ public class NotificationController {
     @PatchMapping("/{id}/read")
     public NotificationResponse markAsRead(@PathVariable Long id, Authentication authentication) {
         return notificationService.markAsRead(id, authentication.getName());
+    }
+
+    @PatchMapping("/read-all")
+    public int markAllAsRead(Authentication authentication) {
+        return notificationService.markAllAsRead(authentication.getName());
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Long id, Authentication authentication) {
+        notificationService.deleteNotification(id, authentication.getName());
     }
 }

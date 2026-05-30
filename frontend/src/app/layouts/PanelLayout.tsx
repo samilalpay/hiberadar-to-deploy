@@ -4,6 +4,8 @@ import { useAuth } from '@/features/auth/model/use-auth'
 import { PanelIcon, type IconName } from '@/shared/ui/panel-icons'
 import { PanelFooter } from '@/shared/ui/PanelFooter'
 import { getMyUnreadNotificationCount } from '@/features/firm/api/notifications.api'
+import { getMyProfile } from '@/features/panel/api/panel.api'
+import { resolveMediaUrl } from '@/shared/lib/media'
 
 type NavItem = { to: string; label: string; icon: IconName }
 type NavGroup = { title: string; links: NavItem[] }
@@ -79,6 +81,10 @@ const panelRouteMeta: Record<string, RouteMeta> = {
     title: 'Kurumlar Yonetimi',
     description: 'Hibe veren kurumlar, logoları ve bilgilerini yonetin.',
   },
+  '/admin/firms': {
+    title: 'Firmalar',
+    description: 'Firma profillerini ve temel bilgileri goruntuleyin.',
+  },
 }
 
 function startsWithAny(pathname: string, prefixes: string[]): boolean {
@@ -128,6 +134,7 @@ const adminGroups: NavGroup[] = [
   {
     title: 'Operasyon',
     links: [
+      { to: '/admin/firms', label: 'Firmalar', icon: 'users' },
       { to: '/admin/institutions', label: 'Kurumlar', icon: 'institutions' },
       { to: '/admin/pre-analysis', label: 'On Analiz', icon: 'analytics' },
       { to: '/admin/ingest', label: 'Veri Akisi', icon: 'ingest' },
@@ -146,10 +153,13 @@ export function PanelLayout() {
   const location = useLocation()
   const groups = role === 'FIRMA' ? firmGroups : adminGroups
   const allLinks = groups.flatMap((group) => group.links)
+  const notificationsPath = role === 'FIRMA' ? '/app/notifications' : '/admin/notifications'
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
+  const [profileLogoUrl, setProfileLogoUrl] = useState<string | null>(null)
+  const [companyName, setCompanyName] = useState<string | null>(null)
 
   useEffect(() => {
     let disposed = false
@@ -183,6 +193,36 @@ export function PanelLayout() {
       window.removeEventListener('notifications:changed', onChanged)
     }
   }, [role])
+
+  useEffect(() => {
+    let disposed = false
+
+    async function loadProfile() {
+      try {
+        const profile = await getMyProfile()
+        if (!disposed) {
+          setProfileLogoUrl(profile.companyLogoUrl ?? null)
+          setCompanyName(profile.companyName ?? null)
+        }
+      } catch {
+        if (!disposed) {
+          setProfileLogoUrl(null)
+          setCompanyName(null)
+        }
+      }
+    }
+
+    void loadProfile()
+    const onProfileChanged = () => {
+      void loadProfile()
+    }
+    window.addEventListener('profile:changed', onProfileChanged)
+
+    return () => {
+      disposed = true
+      window.removeEventListener('profile:changed', onProfileChanged)
+    }
+  }, [username])
 
   const activeLink = [...allLinks]
     .sort((a, b) => b.to.length - a.to.length)
@@ -304,13 +344,29 @@ export function PanelLayout() {
             <div className="panel-user-menu">
               <button
                 type="button"
-                className="panel-user-badge panel-user-button"
+                className={`panel-user-badge panel-user-button ${unreadCount > 0 ? 'has-count' : ''}`}
                 onClick={() => setIsUserMenuOpen((prev) => !prev)}
               >
-                {username ?? 'Kullanici'}
+                {profileLogoUrl ? (
+                  <img
+                    className="panel-user-avatar"
+                    src={resolveMediaUrl(profileLogoUrl)}
+                    alt="Firma logosu"
+                  />
+                ) : null}
+                {companyName ? `${companyName} (${username ?? 'kullanici'})` : (username ?? 'Kullanici')}
+                {unreadCount > 0 ? (
+                  <span className="panel-user-badge-count">{unreadCount > 99 ? '99+' : unreadCount}</span>
+                ) : null}
               </button>
               {isUserMenuOpen ? (
                 <div className="panel-user-dropdown" role="menu">
+                  <NavLink to={notificationsPath} className="panel-user-dropdown-item" role="menuitem">
+                    Bildirimler
+                    {unreadCount > 0 ? (
+                      <span className="panel-user-dropdown-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
+                    ) : null}
+                  </NavLink>
                   <NavLink to={`${profileBase}?tab=profile`} className="panel-user-dropdown-item" role="menuitem">
                     Profilim
                   </NavLink>

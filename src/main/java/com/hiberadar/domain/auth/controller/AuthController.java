@@ -73,6 +73,10 @@ public class AuthController {
         AppUser u = userRepository.findByUsername(req.username())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials"));
 
+        if (!u.isActive()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Hesap pasif durumda");
+        }
+
         if (!passwordEncoder.matches(req.password(), u.getPasswordHash())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
         }

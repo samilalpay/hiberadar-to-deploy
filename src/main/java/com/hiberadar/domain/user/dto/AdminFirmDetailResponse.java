@@ -2,15 +2,17 @@ package com.hiberadar.domain.user.dto;
 
 import java.math.BigDecimal;
 
-public record UserProfileResponse(
+public record AdminFirmDetailResponse(
+        Long id,
+        String companyName,
         String username,
         String email,
-        String role,
-        boolean profileCompleted,
         String firstName,
         String lastName,
         String phone,
-        String companyName,
+        String role,
+        boolean profileCompleted,
+        boolean active,
         String applicantType,
         Integer companyAgeMonths,
         Integer employees,
@@ -22,4 +24,5 @@ public record UserProfileResponse(
         BigDecimal turnover,
         String naceCodes,
         String companyLogoUrl
-) {}
+) {
+}

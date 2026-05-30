@@ -52,6 +52,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 filterChain.doFilter(request, response);
                 return;
             }
+            if (!user.isActive()) {
+                filterChain.doFilter(request, response);
+                return;
+            }
 
             // principal olarak userId koyuyoruz (controller'da Long principal kullandık)
             var auth = new UsernamePasswordAuthenticationToken(

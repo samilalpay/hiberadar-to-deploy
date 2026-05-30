@@ -6,7 +6,9 @@ import com.hiberadar.domain.notification.dto.NotificationResponse;
 import com.hiberadar.domain.notification.entity.Notification;
 import com.hiberadar.domain.notification.repository.NotificationRepository;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -116,10 +118,35 @@ public class NotificationService {
         saveNotification(recipient, "GRANT_MATCHED", "Yeni uygun hibe bulundu", message);
     }
 
+    public void createFirmRegistrationRequestedNotification(AppUser adminRecipient,
+            String firmUsername,
+            String contactName,
+            String contactEmail,
+            String contactPhone) {
+        StringBuilder msg = new StringBuilder("Yeni firma kayit talebi: ")
+                .append(firmUsername);
+        if (contactName != null && !contactName.isBlank()) {
+            msg.append(" (Kisi: ").append(contactName).append(")");
+        }
+        if (contactEmail != null && !contactEmail.isBlank()) {
+            msg.append(" Email: ").append(contactEmail).append(".");
+        }
+        if (contactPhone != null && !contactPhone.isBlank()) {
+            msg.append(" Tel: ").append(contactPhone).append(".");
+        }
+        saveNotification(adminRecipient, "FIRM_REGISTRATION_REQUESTED", "Yeni firma kayit talebi", msg.toString());
+    }
+
     @Transactional(readOnly = true)
-    public Page<NotificationResponse> myNotifications(String username, Pageable pageable) {
-        return notificationRepository.findByRecipient_UsernameOrderByCreatedAtDesc(username, pageable)
-                .map(this::toResponse);
+    public Page<NotificationResponse> myNotifications(String username, Boolean read, Pageable pageable) {
+        Pageable effectivePageable = pageable;
+        if (pageable.getSort().isUnsorted()) {
+            effectivePageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(Sort.Direction.DESC, "createdAt"));
+        }
+        Page<Notification> page = read == null
+                ? notificationRepository.findByRecipient_Username(username, effectivePageable)
+                : notificationRepository.findByRecipient_UsernameAndRead(username, read, effectivePageable);
+        return page.map(this::toResponse);
     }
 
     public long unreadCount(String username) {
@@ -131,6 +158,22 @@ public class NotificationService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Notification not found"));
         n.setRead(true);
         return toResponse(notificationRepository.save(n));
+    }
+
+    public int markAllAsRead(String username) {
+        var unread = notificationRepository.findByRecipient_UsernameAndReadFalse(username);
+        if (unread.isEmpty()) {
+            return 0;
+        }
+        unread.forEach((item) -> item.setRead(true));
+        notificationRepository.saveAll(unread);
+        return unread.size();
+    }
+
+    public void deleteNotification(Long notificationId, String username) {
+        Notification n = notificationRepository.findByIdAndRecipient_Username(notificationId, username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Notification not found"));
+        notificationRepository.delete(n);
     }
 
     private NotificationResponse toResponse(Notification n) {
